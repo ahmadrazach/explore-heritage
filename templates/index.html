@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExploreHeritage</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2rem;
+        background-color: #f5f5f5;
+      }
+      h1 {
+        color: #333333;
+      }
+      form {
+        margin-bottom: 1.5rem;
+      }
+      input[type='text'] {
+        width: 80%;
+        padding: 0.5rem;
+        font-size: 1rem;
+      }
+      button {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        background-color: #007bff;
+        color: #ffffff;
+        border: none;
+        cursor: pointer;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 0.5rem;
+        text-align: left;
+        border-bottom: 1px solid #dddddd;
+      }
+      th {
+        background-color: #f0f0f0;
+      }
+      tr:hover {
+        background-color: #f9f9f9;
+      }
+      .score {
+        color: #555555;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Travel Recommendation Demo</h1>
+    <p>
+      Enter a query describing the type of destination you are looking for
+      (e.g., "great places to visit in Asia").
+    </p>
+    <form method="post">
+      <input
+        type="text"
+        name="query"
+        placeholder="Your travel query"
+        value="{{ query }}"
+        required
+      />
+      <button type="submit">Search</button>
+    </form>
+    {% if results %}
+    <h2>Top Recommendations</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Destination</th>
+          <th>Location</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in results %}
+        <tr>
+          <td>{{ item.text }}</td>
+          <td>{{ item.location }}</td>
+          <td class="score">{{ '%.4f'|format(item.score) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% elif query %}
+    <p>No results found.</p>
+    {% endif %}
+  </body>
+</html>

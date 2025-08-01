@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UNESCO Site Recommender</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 2rem;
+        background: #f5f5f5;
+      }
+      h1 {
+        margin-top: 0;
+      }
+      input[type='text'] {
+        width: 80%;
+        padding: 0.6rem;
+        font-size: 1rem;
+      }
+      button {
+        padding: 0.6rem 1.2rem;
+        background: #0077ff;
+        color: #fff;
+        border: 0;
+        border-radius: 0.25rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        background: #fff;
+      }
+      th,
+      td {
+        padding: 0.5rem;
+        border-bottom: 1px solid #ddd;
+        font-size: 0.9rem;
+        text-align: left;
+      }
+      th {
+        background: #eee;
+      }
+      em {
+        color: #555;
+      }
+    </style>
+    <!--  Papa Parse CDN for quick CSV parsing  -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  </head>
+  <body>
+    <h1>Travel Recommendation Demo</h1>
+    <p>
+      Enter a query describing the type of destination you are looking for
+      (e.g., "mountain sites in Pakistan").
+    </p>
+
+    <input id="queryBox" type="text" placeholder="Your travel query" />
+    <button onclick="search()">Search</button>
+
+    <h2>Top Recommendations</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Destination</th>
+          <th>Location</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody">
+        <tr>
+          <td colspan="3"><em>Loading corpus…</em></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <script>
+      /* ---------- 1. Utility helpers  ---------- */
+      const tokenize = (str) =>
+        str
+          .toLowerCase()
+          .replace(/[^a-z0-9\s]/g, ' ')
+          .split(/\s+/)
+          .filter(Boolean)
+
+      function cosine(a, b) {
+        let dot = 0,
+          na = 0,
+          nb = 0
+        for (let i = 0; i < a.length; i++) {
+          dot += a[i] * b[i]
+          na += a[i] * a[i]
+          nb += b[i] * b[i]
+        }
+        return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1)
+      }
+
+      /* ---------- 2. Global data structures ---------- */
+      let docs = [] // {text, loc, tfidfVec}
+      let vocab = new Map() // token -> global idf
+      let idf = {} // token -> idf value
+      let dim = 0 // vocabulary size
+
+      /* ---------- 3. Load CSV & build index ---------- */
+      fetch('unesco.csv')
+        .then((r) => r.text())
+        .then((csv) => {
+          // 3-A  Parse CSV (comma delimiter)
+          const parsed = Papa.parse(csv, { header: true }).data
+
+          // 3-B  Keep rows that have name & country
+          const rowsOk = parsed.filter((r) => r.name_en && r.states_name_en)
+
+          // 3-C  Build docs array
+          docs = rowsOk.map((r) => ({
+            text: `${r.name_en} is a ${r.category} heritage site in ${r.states_name_en}.`,
+            loc: r.states_name_en,
+          }))
+
+          buildTfIdf() // create vocabulary & vectors
+
+          document.getElementById(
+            'resultsBody'
+          ).innerHTML = `<tr><td colspan="3"><em>Type a query and hit Search.</em></td></tr>`
+        })
+        .catch((err) => console.error('CSV load error ➜', err))
+
+      function buildTfIdf() {
+        // 3.1 build DF counts
+        const df = {}
+        docs.forEach((d) => {
+          const seen = new Set()
+          tokenize(d.text).forEach((tok) => {
+            if (!seen.has(tok)) {
+              df[tok] = (df[tok] || 0) + 1
+              seen.add(tok)
+            }
+          })
+        })
+        const N = docs.length
+        // 3.2 compute IDF & vocabulary index
+        let idx = 0
+        for (const t in df) {
+          idf[t] = Math.log(N / df[t])
+          vocab.set(t, idx++)
+        }
+        dim = vocab.size
+        // 3.3 compute each doc’s TF-IDF vector
+        docs.forEach((d) => {
+          const vec = new Float32Array(dim)
+          const tf = {}
+          tokenize(d.text).forEach((t) => (tf[t] = (tf[t] || 0) + 1))
+          for (const t in tf) {
+            const j = vocab.get(t)
+            if (j === undefined) continue
+            vec[j] = tf[t] * idf[t]
+          }
+          d.tfidf = vec
+        })
+      }
+
+      /* ---------- 4. Search ---------- */
+      function search() {
+        const q = document.getElementById('queryBox').value.trim()
+        const toks = tokenize(q)
+        if (!q) {
+          alert('Enter a query')
+          return
+        }
+        const qVec = new Float32Array(dim)
+        toks.forEach((t) => {
+          if (idf[t]) {
+            qVec[vocab.get(t)] = idf[t]
+          }
+        })
+        // warn if none of the words exist in vocab
+        if (qVec.every((v) => v === 0)) {
+          document.getElementById(
+            'resultsBody'
+          ).innerHTML = `<tr><td colspan="3"><em>No matching terms \
+        found in our corpus.</em></td></tr>`
+          return
+        }
+        // rank
+        const ranked = docs
+          .map((d) => ({ ...d, score: cosine(qVec, d.tfidf) }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5)
+        // render table
+        document.getElementById('resultsBody').innerHTML = ranked
+          .map(
+            (r) => `<tr>
+       <td>${r.text}</td><td>${r.loc}</td><td>${r.score.toFixed(4)}</td>
+     </tr>`
+          )
+          .join('')
+      }
+    </script>
+  </body>
+</html>
