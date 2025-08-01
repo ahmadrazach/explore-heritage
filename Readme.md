@@ -32,10 +32,10 @@ This is a lightweight, fully client-side web application that uses **TF-IDF** (T
 ## 📁 File Structure
 
 travel_recommender/
-├── index.html # Main logic, UI, JS embedded
-├── unesco.csv # Dataset for recommendations
-├── templates/ # (optional) Flask setup or extended templates
-│ └── index.html
+├── index.html # Main app logic and UI
+├── unesco.csv # UNESCO dataset (parsed in-browser via PapaParse)
+└── templates/ # Flask backend templates (optional for extension)
+└── index.html # HTML template (unused in pure frontend mode)
 
 ---
 
