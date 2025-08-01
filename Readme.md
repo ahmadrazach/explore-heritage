@@ -1,29 +1,56 @@
 # 🗺️ ExploreHeritage — UNESCO Site Recommender
 
-**ExploreHeritage** is a simple, lightweight web app that recommends world heritage destinations based on your input — powered by a TF-IDF text similarity engine running entirely in the browser.
+This is a lightweight, fully client-side web application that uses **TF-IDF** (Term Frequency-Inverse Document Frequency) and **Cosine Similarity** to recommend travel destinations based on user queries.
 
 > ✨ Type a natural-language query like:  
 > **"mountain sites in Pakistan"** or **"ancient cities in Africa"**,  
-> and get relevant UNESCO heritage site recommendations instantly.
+> and get the top UNESCO World Heritage destinations that best match the intent of their search.
 
 ---
 
 ## 🌍 How It Works
 
-- Parses a CSV of UNESCO world heritage sites (via [unesco.csv](./unesco.csv)).
-- Tokenizes descriptions and builds a TF-IDF vector index client-side.
-- Accepts a user query, computes cosine similarity, and ranks results.
-- No servers, no backend — everything runs in the browser via JavaScript.
+- The app uses [`unesco.csv`](./unesco.csv), which includes UNESCO World Heritage site metadata (name, country, category).
+- The text from each site is vectorized using the **TF-IDF** method.
+- A **Cosine Similarity** score is computed between the query and each site vector.
+- The top 5 most relevant matches are returned and ranked in the table.
+
+---
+
+---
+
+## 📊 Technologies Used
+
+| Feature                | Tool/Method            |
+| ---------------------- | ---------------------- |
+| Text Vectorization     | TF-IDF                 |
+| Similarity Calculation | Cosine Similarity      |
+| CSV Parsing            | PapaParse.js (browser) |
+| Frontend               | HTML + Vanilla JS      |
+| Hosting (Suggested)    | GitHub + Vercel        |
+
+---
+
+---
+
+## 📁 File Structure
+
+travel_recommender/
+├── index.html # Main logic, UI, JS embedded
+├── unesco.csv # Dataset for recommendations
+├── templates/ # (optional) Flask setup or extended templates
+│ └── index.html
 
 ---
 
 ## 🧪 Try It Live
 
-Coming soon via [Vercel](https://vercel.com/) deployment.  
+live demo link : https://explore-heritage.vercel.app/
+
 To test locally:
 
 ```bash
-git clone https://github.com/yourusername/explore-heritage.git
+git clone https://github.com/ahmadrazach/explore-heritage.git
 cd explore-heritage
 open index.html  # or just drag it into your browser
 ```
