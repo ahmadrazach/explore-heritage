@@ -6,6 +6,7 @@ This is a lightweight, fully client-side web application that uses **TF-IDF** (T
 > **"mountain sites in Pakistan"** or **"ancient cities in Africa"**,  
 > and get the top UNESCO World Heritage destinations that best match the intent of their search.
 
+[demo](https://screenrec.com/share/W4MPCBaVfE) 
 ---
 
 ## 🌍 How It Works
