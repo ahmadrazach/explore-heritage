@@ -17,8 +17,6 @@ This is a lightweight, fully client-side web application that uses **TF-IDF** (T
 
 ---
 
----
-
 ## 📊 Technologies Used
 
 | Feature                | Tool/Method            |
@@ -28,8 +26,6 @@ This is a lightweight, fully client-side web application that uses **TF-IDF** (T
 | CSV Parsing            | PapaParse.js (browser) |
 | Frontend               | HTML + Vanilla JS      |
 | Hosting (Suggested)    | GitHub + Vercel        |
-
----
 
 ---
 
